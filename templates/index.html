@@ -317,7 +317,39 @@
             </div>
 
         </div>
+        <div class="d-flex justify-content-center mb-4">
 
+    <ul class="nav nav-pills bg-white p-1 shadow-sm rounded-pill">
+
+        <li class="nav-item">
+
+            <a
+                class="nav-link active"
+                id="btn-chart"
+                href="javascript:void(0)"
+                onclick="toggleFlashcard('chart')"
+            >
+                Efficiency Chart
+            </a>
+
+        </li>
+
+        <li class="nav-item">
+
+            <a
+                class="nav-link"
+                id="btn-heatmap"
+                href="javascript:void(0)"
+                onclick="toggleFlashcard('heatmap')"
+            >
+                Priority Heatmap
+            </a>
+
+        </li>
+
+    </ul>
+
+</div>
         <div class="analytics-container">
 
             <div id="card-chart"
@@ -345,6 +377,28 @@
                 </div>
 
             </div>
+            <div
+    id="card-heatmap"
+    class="flashcard hidden-card card dashboard-card p-4"
+>
+
+    <h5 class="mb-3 text-center">
+        Priority Heatmap
+    </h5>
+
+    <p class="text-muted small text-center mb-4">
+        High-priority pending items
+    </p>
+
+    <div id="priority-heatmap">
+
+        <div class="text-center py-5 text-muted">
+            No urgent tasks
+        </div>
+
+    </div>
+
+</div>
 
         </div>
 
@@ -605,7 +659,179 @@
         fetchTasks();
 
     });
+    function toggleFlashcard(type){
 
+    const chartCard =
+        document.getElementById(
+            'card-chart'
+        );
+
+    const heatmapCard =
+        document.getElementById(
+            'card-heatmap'
+        );
+
+    const chartBtn =
+        document.getElementById(
+            'btn-chart'
+        );
+
+    const heatmapBtn =
+        document.getElementById(
+            'btn-heatmap'
+        );
+
+    if(type === 'chart'){
+
+        chartCard.classList.remove(
+            'hidden-card'
+        );
+
+        heatmapCard.classList.add(
+            'hidden-card'
+        );
+
+        chartBtn.classList.add(
+            'active'
+        );
+
+        heatmapBtn.classList.remove(
+            'active'
+        );
+
+    }
+    else{
+
+        chartCard.classList.add(
+            'hidden-card'
+        );
+
+        heatmapCard.classList.remove(
+            'hidden-card'
+        );
+
+        chartBtn.classList.remove(
+            'active'
+        );
+
+        heatmapBtn.classList.add(
+            'active'
+        );
+    }
+}
+
+function renderPriorityHeatmap(tasks){
+
+    const heatmapCont =
+        document.getElementById(
+            'priority-heatmap'
+        );
+
+    if(!heatmapCont) return;
+
+    const pendingTasks =
+        tasks.filter(
+            t => t.status !== 'Completed'
+        );
+
+    if(pendingTasks.length === 0){
+
+        heatmapCont.innerHTML += `
+
+<div
+    class="p-3 mb-2 rounded shadow-sm d-flex justify-content-between align-items-center ${bgClass}"
+>
+
+    <div>
+
+        <div>
+
+            ${
+                isHot
+                ? '<i class="fa-solid fa-fire me-1"></i>'
+                : ''
+            }
+
+            <strong>${t.title}</strong>
+
+        </div>
+
+        <small class="${
+            isHot
+            ? 'text-light'
+            : 'text-muted'
+        }">
+
+            Deadline:
+            ${t.deadline || 'No Date'}
+
+        </small>
+
+    </div>
+
+    <span class="badge bg-dark">
+        ${t.priority}
+    </span>
+
+</div>
+`;
+
+        return;
+    }
+
+    heatmapCont.innerHTML = '';
+
+    const sorted = pendingTasks.map(t => {
+
+        const priorityWeight =
+            t.priority === 'High'
+            ? 12
+            : t.priority === 'Medium'
+            ? 7
+            : 3;
+
+        return {
+            ...t,
+            score:priorityWeight
+        };
+
+    }).sort((a,b) => b.score - a.score);
+
+    sorted.forEach(t => {
+
+        const isHot = t.score >= 10;
+
+        const bgClass =
+            isHot
+            ? 'bg-danger text-white'
+            : 'bg-light text-dark';
+
+        heatmapCont.innerHTML += `
+
+            <div
+                class="p-2 mb-2 rounded shadow-sm d-flex justify-content-between align-items-center ${bgClass}"
+            >
+
+                <span>
+
+                    ${
+                        isHot
+                        ? '<i class="fa-solid fa-fire me-1"></i>'
+                        : ''
+                    }
+
+                    <strong>${t.title}</strong>
+
+                </span>
+
+                <small>
+                    ${t.priority}
+                </small>
+
+            </div>
+        `;
+    });
+}
     async function updateAnalytics(){
 
         const res =
@@ -729,14 +955,14 @@
             const dueToday =
     task.deadline === today;
 
-const tomorrow =
-    new Date();
+        const tomorrow =
+        new Date();
 
-tomorrow.setDate(
+    tomorrow.setDate(
     tomorrow.getDate() + 1
-);
+        );
 
-const tomorrowStr =
+    const tomorrowStr =
     tomorrow.toISOString()
     .split('T')[0];
 
@@ -889,6 +1115,8 @@ if(task.status !== 'Completed'){
         document.getElementById(
             'completed-count'
         ).innerText = completedCount;
+
+        renderPriorityHeatmap(tasks);
     }
 
     const taskForm =
