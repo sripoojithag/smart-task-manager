@@ -81,3 +81,29 @@ project/
 ├── requirements.txt
 ├── README.md
 └── .env
+
+
+Installation Steps
+1. Clone Repository
+git clone YOUR_GITHUB_LINK
+
+2. Navigate to Project
+cd smart-task-manager
+
+3. Create Virtual Environment
+python -m venv venv
+
+4. Activate Virtual Environment
+Windows
+venv\Scripts\activate
+Mac/Linux
+source venv/bin/activate
+
+5. Install Dependencies
+pip install -r requirements.txt
+
+6. Configure PostgreSQL
+Create PostgreSQL database and update DATABASE_URL in .env.
+
+7. Run Application
+python app.py
